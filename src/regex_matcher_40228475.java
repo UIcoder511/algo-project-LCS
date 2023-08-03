@@ -3,11 +3,6 @@ import java.util.*;
 
  public class regex_matcher_40228475 {
 
-    String printLongestCommonSubsequece(int n,List<String> words,String regex){
-
-
-        return "";
-    }
 
     static List<String>  getMatchingStrings(List<String> words,String regex){
         List<String> matchedStrings=new ArrayList<>();
@@ -131,7 +126,7 @@ import java.util.*;
     public static String findLongestCommonSubsequence(List<String> matchedWords){
         switch (matchedWords.size()){
             case 0:
-                return "No Common Sub";
+                return "No Common Sub Sequence";
 
             case 1:
                 return matchedWords.get(0);
