@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-public class Main {
+ public class regex_matcher_40228475 {
 
     String printLongestCommonSubsequece(int n,List<String> words,String regex){
 
@@ -162,11 +162,10 @@ public class Main {
         br.close();
 
         List<String> matchedWords=getMatchingStrings(words,regex);
-        System.out.println(matchedWords);
-        //printLongestCommonSubsequece(n,words,regex)
-
-        System.out.println(regex+" "+words+" "+n);
-        System.out.println(findLongestCommonSubsequence(matchedWords));
-//        writeToFile("abcs");
+//        System.out.println(matchedWords);
+//        System.out.println(regex+" "+words+" "+n);
+        String lcs=findLongestCommonSubsequence(matchedWords);
+//        System.out.println(lcs);
+        writeToFile(lcs);
     }
 }

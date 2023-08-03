@@ -1,8 +1,6 @@
-6
-Apple
-Maple
-Apply
-Couple
-Pledge
-Please
-.*pl.
+4
+AAABAA
+AACBCA
+AAABCA
+DDEEDD
+AA.B.A
