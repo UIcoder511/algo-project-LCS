@@ -1,6 +1,7 @@
-4
-AAABAA
-AACBCA
-AAABCA
-DDEEDD
-AA.B.A
+5
+abca
+Aabcx
+baabca
+ccabCd
+Bbabcu
+.*aBc.
