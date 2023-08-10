@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 // Trie data stucture to effeicntly sort the words alphabetically
 class SortTrie {
@@ -8,10 +9,10 @@ class SortTrie {
   private class Trie {
 
     int index = -1;
-    Trie children[] = new Trie[52]; // for a-z and A-Z
+    Trie children[] = new Trie[26]; // for a-z and A-Z
 
     Trie() {
-      for (int i = 0; i < 52; i++) {
+      for (int i = 0; i < 26; i++) {
         children[i] = null;
       }
     }
@@ -29,9 +30,10 @@ class SortTrie {
     for (int i = 0; i < s.length(); i++) {
       char curC = s.charAt(i);
       //check if it is a capital letter or small letter and store accordingly
-      int pos = curC <= 'Z' && curC >= 'A'
-        ? 2 * (curC - 'A')
-        : 2 * (curC - 'a') + 1;
+//      int pos = curC <= 'Z' && curC >= 'A'
+//        ? 2 * (curC - 'A')
+//        : 2 * (curC - 'a') + 1;
+      int pos=curC-'a';
       if (node.children[pos] == null) node.children[pos] = new Trie();
       node = node.children[pos];
     }
@@ -42,7 +44,7 @@ class SortTrie {
   // Function to get the words in sorted order
   public void preorder(
     Trie node,
-    List<String> words,
+    StringBuilder word,
     List<String> matched,
     PatternHelper patternHelper
   ) {
@@ -51,32 +53,126 @@ class SortTrie {
       return;
     }
 
-    for (int i = 0; i < 52; i++) {
-      if (node.children[i] != null) {
-        // if leaf node then print key
-        if (node.children[i].index != -1) {
-          String word = words.get(node.children[i].index);
-          //check if the word matches the pattern and store it in matched list
-          if (patternHelper.isWordMatches(word)) {
-            matched.add(word);
-            //              System.out.println(word);
-          }
-        }
+    if (node.index != -1) {
 
-        preorder(node.children[i], words, matched, patternHelper);
+//          String word = words.get(node.children[i].index);
+      //check if the word matches the pattern and store it in matched list
+      if (patternHelper.isWordMatches(word.toString())) {
+        matched.add(word.toString());
+        //              System.out.println(word);
       }
     }
+
+
+    for (int i = 0; i < 26; i++) {
+      if (node.children[i] != null) {
+        // if leaf node then print key
+
+        word.append((char) ('a' + i));
+        preorder(node.children[i], word, matched, patternHelper);
+        word.deleteCharAt(word.length() - 1);
+      }
+    }
+  }
+
+  public void traverse(Trie node,StringBuilder word,List<String> matches,String pattern,int pointer){
+    if (node == null ) {
+      return;
+    }
+    if (pointer == pattern.length()) {
+      if (node.index!=-1) {
+        System.out.println(pointer+" "+ pattern.length());
+        System.out.println("macthed-"+word.toString());
+        //if(!matches.contains(word.toString()))
+        matches.add(word.toString());
+      }
+      return;
+    }
+
+    char curChar=pattern.charAt(pointer);
+    System.out.println("p-"+curChar+" @ "+pointer);
+    System.out.println(word);
+    switch (curChar){
+      case '.':
+
+        if (pointer + 1 < pattern.length() && pattern.charAt(pointer + 1) == '*') {
+          // Handle ".*" pattern
+          for (int i = 0; i < 26; i++) {
+            if (node.children[i] != null) {
+              word.append((char) ('a' + i));
+//              System.out.println((char) ('a' + i));
+              traverse(node.children[i], word, matches, pattern, pointer);
+//              System.out.println("back--"+ word);
+              word.deleteCharAt(word.length() - 1);
+            }
+          }
+//          System.out.println("----"+word);
+          traverse(node, word, matches, pattern, pointer + 2); // Skip ".*"
+//          System.out.println("out loop");
+//          System.out.println("--"+word);
+
+        } else {
+          for (int i = 0; i < 26; i++) {
+            if (node.children[i] != null) {
+              word.append((char) ('a' + i));
+              traverse(node.children[i], word, matches, pattern, pointer + 1);
+              word.deleteCharAt(word.length() - 1);
+            }
+          }
+        }break;
+//      case '*':
+//        char prevChar = pattern.charAt(pointer - 1);
+//        if (prevChar == '.' ) {
+//          for (int i = 0; i < 26; i++) {
+//            if (node.children[i] != null) {
+//              word.append((char) ('a' + i));
+//              traverse(node.children[i], word, matches, pattern, pointer);
+//              word.deleteCharAt(word.length() - 1);
+//            }
+//          }
+//        } else {
+//          // Skip the '*' to theand move  next character in the pattern
+//          traverse(node, word, matches, pattern, pointer + 1);
+//          System.out.println(node+" "+pointer);
+//          // Keep the current character and explore the same character in the Trie node
+//          if (node.children[prevChar - 'a'] != null) {
+//            word.append(prevChar);
+//            traverse(node.children[prevChar - 'a'], word, matches, pattern, pointer);
+//            word.deleteCharAt(word.length() - 1);
+//          }
+//        }
+//        break;
+      default:
+        if (pointer + 1 < pattern.length() && pattern.charAt(pointer + 1) == '*') {
+
+          word.append(curChar);
+          traverse(node.children[curChar-'a'],word,matches,pattern,pointer);
+          word.deleteCharAt(word.length()-1);
+          traverse(node,word,matches,pattern,pointer+2);
+
+        }else{
+          word.append(curChar);
+          traverse(node.children[curChar-'a'],word,matches,pattern,pointer+1);
+          word.deleteCharAt(word.length()-1);
+        }
+
+
+
+
+  }
+
   }
 }
 
 class PatternHelper {
 
-  private String pattern = "";
+//  private String pattern = "";
   private int countOfAsterics = 0; // count of * in pattern
   private int n = 0; //length of pattern
+  Pattern pattern;
 
   public PatternHelper(String pattern) {
-    this.pattern = pattern;
+    this.pattern =Pattern.compile(pattern);
     this.n = pattern.length();
     for (int i = 0; i < n; i++) {
       //count the number of asterics in pattern
@@ -87,6 +183,14 @@ class PatternHelper {
     }
   }
 
+  public boolean hasAsterics(){
+    return countOfAsterics>0;
+  }
+
+  public String getPattern(){
+    return pattern.toString();
+  }
+
   //check if the characters are same or not, ignoring the case
   static boolean isCharSame(char a, char b) {
     return Character.toLowerCase(a) == Character.toLowerCase(b);
@@ -94,54 +198,56 @@ class PatternHelper {
 
   // Function to check if the word matches the pattern
   public boolean isWordMatches(String word) {
-    int len = word.length();
-    //        System.out.println(len+" "+n+" "+countOfAsterics);
-
-    // if removing all the asterics from with the previous character pattern
-    // is greater than the length of word then return false
-    if (countOfAsterics != 0 && len < n - countOfAsterics * 2) return false;
-
-    // if there are no asterics in pattern and
-    // length of word is not equal to length of pattern then return false
-    if (countOfAsterics == 0 && len != n) return false;
-
-    boolean dp[][] = new boolean[len + 1][n + 1];
-    dp[0][0] = true;
-
-    for (int i = 2; i <= n; i++) {
-      char currentCharOfPattern = pattern.charAt(i - 1); // pattern never starts with * => means pattern is valid
-      if (currentCharOfPattern == '*' && dp[0][i - 2]) {
-        dp[0][i] = true;
-      }
-    }
-
-    for (int j = 1; j <= n; j++) {
-      for (int i = 1; i <= len; i++) {
-        char currentCharOfPattern = pattern.charAt(j - 1);
-        char currentCharOfWord = word.charAt(i - 1);
-        if (
-          currentCharOfPattern == '.' ||
-          isCharSame(currentCharOfPattern, currentCharOfWord)
-        ) dp[i][j] = dp[i - 1][j - 1]; else if (currentCharOfPattern == '*') { //skip the current character of pattern and word
-          char prevCharOfPattern = pattern.charAt(j - 2);
-          //if 0 occurences of previous character of pattern then => true
-          //OR previous character of pattern matches the current character of word then previous character of pattern is repeated =>true
-          //OR previous character of pattern is . then it can be replaced by any character => true
-          dp[i][j] =
-            dp[i][j - 2] ||
-            (
-              dp[i - 1][j] &&
-              (
-                isCharSame(prevCharOfPattern, currentCharOfWord) ||
-                prevCharOfPattern == '.'
-              )
-            );
-        }
-      }
-    }
-
-    return dp[len][n];
+    return pattern.matcher(word).matches();
   }
+//    int len = word.length();
+    //        System.out.println(len+" "+n+" "+countOfAsterics);
+//
+//    // if removing all the asterics from with the previous character pattern
+//    // is greater than the length of word then return false
+//    if (countOfAsterics != 0 && len < n - countOfAsterics * 2) return false;
+//
+//    // if there are no asterics in pattern and
+//    // length of word is not equal to length of pattern then return false
+//    if (countOfAsterics == 0 && len != n) return false;
+//
+//    boolean dp[][] = new boolean[len + 1][n + 1];
+//    dp[0][0] = true;
+//
+//    for (int i = 2; i <= n; i++) {
+//      char currentCharOfPattern = pattern.charAt(i - 1); // pattern never starts with * => means pattern is valid
+//      if (currentCharOfPattern == '*' && dp[0][i - 2]) {
+//        dp[0][i] = true;
+//      }
+//    }
+//
+//    for (int j = 1; j <= n; j++) {
+//      for (int i = 1; i <= len; i++) {
+//        char currentCharOfPattern = pattern.charAt(j - 1);
+//        char currentCharOfWord = word.charAt(i - 1);
+//        if (
+//          currentCharOfPattern == '.' ||
+//          isCharSame(currentCharOfPattern, currentCharOfWord)
+//        ) dp[i][j] = dp[i - 1][j - 1]; else if (currentCharOfPattern == '*') { //skip the current character of pattern and word
+//          char prevCharOfPattern = pattern.charAt(j - 2);
+//          //if 0 occurences of previous character of pattern then => true
+//          //OR previous character of pattern matches the current character of word then previous character of pattern is repeated =>true
+//          //OR previous character of pattern is . then it can be replaced by any character => true
+//          dp[i][j] =
+//            dp[i][j - 2] ||
+//            (
+//              dp[i - 1][j] &&
+//              (
+//                isCharSame(prevCharOfPattern, currentCharOfWord) ||
+//                prevCharOfPattern == '.'
+//              )
+//            );
+//        }
+//      }
+//    }
+//
+//    return dp[len][n];
+//  }
 }
 
 public class regex_matcher_40228475 {
@@ -156,12 +262,18 @@ public class regex_matcher_40228475 {
 
     //insert all the words in trie
     for (int i = 0; i < words.size(); i++) {
-      sortTrie.insert(words.get(i), i);
+      sortTrie.insert(words.get(i).toLowerCase(), i);
     }
-
+//    System.out.println(words+" "+patternHelper.getPattern());
     //get the words in sorted order
-    sortTrie.preorder(sortTrie.root, words, matchedStrings, patternHelper);
-    // System.out.println("new " + matchedStrings);
+//    sortTrie.preorder(sortTrie.root, words, matchedStrings, patternHelper.getPattern());
+    if(patternHelper.hasAsterics())
+      sortTrie.preorder(sortTrie.root, new StringBuilder(""), matchedStrings, patternHelper);
+
+    else{
+      sortTrie.traverse(sortTrie.root,new StringBuilder(""),matchedStrings,patternHelper.getPattern(),0);
+    }
+     System.out.println("new " + matchedStrings);
     //        words.sort(String::compareTo);
     //
     //        for(String word: words){
@@ -331,7 +443,7 @@ public class regex_matcher_40228475 {
     String regex = br.readLine().trim();
     br.close();
 
-    PatternHelper patternHelper = new PatternHelper(regex);
+    PatternHelper patternHelper = new PatternHelper(regex.toLowerCase());
 
     List<String> matchedWords = getMatchingMostThreeStrings(
       words,
@@ -364,3 +476,10 @@ public class regex_matcher_40228475 {
 //Pledge
 //Please
 //..pl.
+//5
+//        abca
+//        Aabcx
+//        baabca
+//        ccabCd
+//        Bbabcu
+//        .*aBc.
